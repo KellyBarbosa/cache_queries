@@ -1,2 +1,4 @@
 db_*
+env
 .env
+__pycache__
