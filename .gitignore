@@ -2,3 +2,5 @@ db_*
 env
 .env
 __pycache__
+prisma/
+.ipynb_checkpoints

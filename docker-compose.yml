@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   mysql:
     image: mysql:8.0
@@ -9,11 +11,34 @@ services:
       - ${MYSQL_PORT}:3306
     volumes:
       - ./db_mysql:/var/lib/mysql
+    networks:
+      - database_network
 
   redis:
     image: redis:latest
     container_name: redis_container
+    depends_on:
+      - mysql
     ports:
       - ${REDIS_PORT}:6379
     volumes:
       - ./db_redis:/data
+    networks:
+      - database_network
+
+  jupyter:
+    image: jupyter/base-notebook
+    container_name: jupyter
+    restart: always
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_TOKEN=4123
+    volumes:
+      - ./notebooks:/home/jovyan/work
+    networks:
+      - database_network
+
+networks:
+  database_network:
+    driver: bridge
