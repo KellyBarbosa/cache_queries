@@ -27,6 +27,12 @@ pip install -r requirements.txt
  docker-compose up -d
 ```
 
+## Run API
+
+```shell
+flask --app api run
+```
+
 ## Set information to run
 
 Create an `.env` file based on `.env.example` and define its information.

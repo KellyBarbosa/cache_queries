@@ -1,6 +1,7 @@
 db_*
 env
 .env
+.venv
 __pycache__
 prisma/
 notebooks/.ipynb_checkpoints
