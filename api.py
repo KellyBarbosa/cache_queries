@@ -38,7 +38,7 @@ def list_customers():
     params = []
     if name:
         query += " AND Nome LIKE %s"
-        params.append("%{name}%")
+        params.append(f"%{name}%")
     if address:
         query += " AND Endereco LIKE %s"
         params.append(f"%{address}%")
