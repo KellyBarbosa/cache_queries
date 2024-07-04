@@ -83,14 +83,18 @@ def list_transactions(card_id):
     WHERE t.CartaoID = %s AND  MONTH(t.DataTransacao) = MONTH(now())
     """
     params = (card_id,)
-
+    key=f"transactions_card_{str(params)}"
+    cache = redis.get(key)
+    if(cache):
+        payload=cache.decode('utf-8')
+        return jsonify(ast.literal_eval(payload))
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query, params)
     transactions = cursor.fetchall()
     cursor.close()
     conn.close()
-
+    redis.set(key,str(transactions))
     return jsonify(transactions)
 
 
