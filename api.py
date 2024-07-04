@@ -1,12 +1,19 @@
 import os
 from flask import Flask, request, jsonify
 import mysql.connector
+from redis import Redis
+import ast
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
 
+REDIS_PORT = int(os.getenv("REDIS_PORT") or 6379)
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_DB = int(os.getenv("REDIS_DB") or 0)
+
+redis = Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -29,21 +36,24 @@ def list_customers():
     address = request.args.get('address')
     query = "SELECT * FROM clientes WHERE 1=1"
     params = []
-
     if name:
-        query += " AND name LIKE %s"
-        params.append(f"%{name}%")
+        query += " AND Nome LIKE %s"
+        params.append("%{name}%")
     if address:
-        query += " AND address LIKE %s"
+        query += " AND Endereco LIKE %s"
         params.append(f"%{address}%")
 
+    cache = redis.get(str(params))
+    if(cache):
+        payload=cache.decode('utf-8')
+        return jsonify(ast.literal_eval(payload))
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query, params)
     customers = cursor.fetchall()
     cursor.close()
     conn.close()
-
+    redis.set(str(params),str(customers))
     return jsonify(customers)
 
 
@@ -70,8 +80,7 @@ def list_transactions(card_id):
     query = """
     SELECT t.*
     FROM transacoes t
-    JOIN faturas i ON t.FaturaID = i.id
-    WHERE i.CartaoID = %s AND i.MesReferencia = MONTH(now())
+    WHERE t.CartaoID = %s AND  MONTH(t.DataTransacao) = MONTH(now())
     """
     params = (card_id,)
 
